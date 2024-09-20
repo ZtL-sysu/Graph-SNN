@@ -317,17 +317,17 @@ def main():
     parser = argparse.ArgumentParser(description="Train GCN-SNN model")
 
     # 添加参数
-    parser.add_argument('--num_nodes_per_graph', type=int, default=100, help='Number of nodes per graph')
+    parser.add_argument('--num_nodes_per_graph', type=int, required=True, help='Number of nodes per graph')
     parser.add_argument('--per_dist', type=any, required=True, help='Distance parameter for dataset')
     parser.add_argument('--per_height', type=any, required=True, help='Height parameter for dataset')
     parser.add_argument('--per_samecity', type=any, required=True, help='Same city flag for dataset')
     parser.add_argument('--rainfull_except_value', type=any, required=True, help='Rainfall data except value')
-    parser.add_argument('--batch_size', type=int, default=32, help='Batch size for training')
-    parser.add_argument('--train_epoch', type=int, default=100, help='Number of training epochs')
-    parser.add_argument('--gcn_hidden1', type=int, default=64, help='Number of hidden units in GCN layer 1')
-    parser.add_argument('--gcn_hidden2', type=int, default=32, help='Number of hidden units in GCN layer 2')
-    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--file_path', type=str, default='trained_gcn_snn_model.pth', help='File path to save the trained model')
+    parser.add_argument('--batch_size', type=int, required=True, help='Batch size for training')
+    parser.add_argument('--train_epoch', type=int, required=True, help='Number of training epochs')
+    parser.add_argument('--gcn_hidden1', type=int, required=True, help='Number of hidden units in GCN layer 1')
+    parser.add_argument('--gcn_hidden2', type=int, required=True, help='Number of hidden units in GCN layer 2')
+    parser.add_argument('--lr', type=float, required=True, help='Learning rate')
+    parser.add_argument('--file_path', type=str, required=True, help='File path to save the trained model')
 
     # 解析参数
     args = parser.parse_args()
