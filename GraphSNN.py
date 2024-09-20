@@ -16,14 +16,12 @@ import numpy as np
 import os
 import math
 from torch_geometric.nn import GCNConv
-
 import base64
 from io import BytesIO
 import spikingjelly.timing_based.neuron as neuron
-
+import argparse
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 class GraphSNNDataset(Dataset):
     def __init__(self, num_nodes_per_graph: int, per_dist: any, per_height: any, per_samecity: any, rainfull_except_value: any):
@@ -308,69 +306,47 @@ def train_gcn_snn(num_nodes_per_graph: int, per_dist: any, per_height: any, per_
 
     # 假设model是你已经训练好的PyTorch模型
     state_dict = model.state_dict()
-
-    # 创建一个将保存编码状态字典的字典
-    encoded_state_dict = {}
-
-    # 对于state_dict中的每个参数，将其转换为base64编码的字符串
-    for key, value in state_dict.items():
-        buffer = BytesIO()
-        torch.save(value, buffer)
-        encoded_state_dict[key] = base64.b64encode(
-            buffer.getvalue()).decode("utf-8")
-        
-    # save parameters, turlevelist, forcastingist
-    savefile = {
-        "num_nodes_per_graph": num_nodes_per_graph,
-        "per_dist": per_dist,
-        "per_height": per_height,
-        "per_samecity": per_samecity,
-        "rainfull_except_value": rainfull_except_value,
-        "batch_size": batch_size,
-        "train_epoch": train_epoch,
-        "gcn_hidden1": gcn_hidden1,
-        "gcn_hidden2": gcn_hidden2,
-        # "m": m,
-        # "T": T,
-        # "tau": tau,
-        # "tau_s": tau_s,
-        "lr": lr,
-        "train_accuracy": train_accuracy,
-        "test_accuracy": test_accuracy,
-        "modelbase64code": encoded_state_dict,
-    }
-
-    append_to_json_file(savefile, file_path)
-
-    # 清理缓存
-    torch.cuda.empty_cache()
-    # 调用垃圾回收器
-    gc.collect()
-    # return loss
-    return 1-test_accuracy
+    
+    # 保存模型的state_dict到file_path
+    torch.save(state_dict, file_path)
+    print(f"Model saved to {file_path}")
 
 
-def append_to_json_file(data, file_path):
-    # 检查文件是否存在
-    if os.path.exists(file_path):
-        # 读取现有数据
-        with open(file_path, 'r') as file:
-            try:
-                file_data = json.load(file)
-            except json.JSONDecodeError:
-                # 如果文件为空或格式不正确，则创建一个空列表
-                file_data = []
-    else:
-        # 如果文件不存在，创建一个空列表
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        file_data = []
+def main():
+    # 创建解析器
+    parser = argparse.ArgumentParser(description="Train GCN-SNN model")
 
-    # 添加新数据
-    file_data.append(data)
+    # 添加参数
+    parser.add_argument('--num_nodes_per_graph', type=int, default=100, help='Number of nodes per graph')
+    parser.add_argument('--per_dist', type=any, required=True, help='Distance parameter for dataset')
+    parser.add_argument('--per_height', type=any, required=True, help='Height parameter for dataset')
+    parser.add_argument('--per_samecity', type=any, required=True, help='Same city flag for dataset')
+    parser.add_argument('--rainfull_except_value', type=any, required=True, help='Rainfall data except value')
+    parser.add_argument('--batch_size', type=int, default=32, help='Batch size for training')
+    parser.add_argument('--train_epoch', type=int, default=100, help='Number of training epochs')
+    parser.add_argument('--gcn_hidden1', type=int, default=64, help='Number of hidden units in GCN layer 1')
+    parser.add_argument('--gcn_hidden2', type=int, default=32, help='Number of hidden units in GCN layer 2')
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
+    parser.add_argument('--file_path', type=str, default='trained_gcn_snn_model.pth', help='File path to save the trained model')
 
-    # 写回文件
-    with open(file_path, 'w') as file:
-        json.dump(file_data, file, indent=4)
+    # 解析参数
+    args = parser.parse_args()
 
+    # 启动训练
+    train_gcn_snn(
+        num_nodes_per_graph=args.num_nodes_per_graph,
+        per_dist=args.per_dist,
+        per_height=args.per_height,
+        per_samecity=args.per_samecity,
+        rainfull_except_value=args.rainfull_except_value,
+        batch_size=args.batch_size,
+        train_epoch=args.train_epoch,
+        gcn_hidden1=args.gcn_hidden1,
+        gcn_hidden2=args.gcn_hidden2,
+        lr=args.lr,
+        file_path=args.file_path
+    )
 
+if __name__ == "__main__":
+    main()
 
